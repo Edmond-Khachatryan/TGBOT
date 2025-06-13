@@ -3,7 +3,23 @@ const config = require('./config');
 const Logger = require('./logger');
 const stats = require('./stats');
 
-const bot = new TelegramBot(config.botToken, { polling: true });
+// Добавляем логирование при старте
+Logger.log('Starting bot initialization...');
+Logger.log(`Bot token: ${config.botToken ? 'Present' : 'Missing'}`);
+
+const bot = new TelegramBot(config.botToken, { 
+    polling: true,
+    filepath: false
+});
+
+// Обработка ошибок подключения
+bot.on('polling_error', (error) => {
+    Logger.error(`Polling error: ${error.message}`);
+});
+
+bot.on('error', (error) => {
+    Logger.error(`Bot error: ${error.message}`);
+});
 
 Logger.success('Бот запущен и готов к работе!');
 
@@ -15,6 +31,7 @@ function isAdmin(userId) {
 
 // Обработка команды /stats
 bot.onText(/\/stats/, async (msg) => {
+    Logger.log(`Received /stats command from user ${msg.from.id}`);
     const chatId = msg.chat.id;
     const userId = msg.from.id;
 
@@ -50,12 +67,19 @@ bot.onText(/\/stats/, async (msg) => {
 
     try {
         await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+        Logger.success(`Статистика отправлена пользователю ${userId}`);
     } catch (error) {
         Logger.error(`Ошибка при отправке статистики: ${error.message}`);
     }
 });
 
+// Добавляем обработчик для всех сообщений
+bot.on('message', (msg) => {
+    Logger.log(`Received message from ${msg.from.id}: ${msg.text || 'non-text message'}`);
+});
+
 bot.on('chat_join_request', async (msg) => {
+    Logger.log(`Received join request from ${msg.from.id}`);
     const { chat, from } = msg;
 
     try {
