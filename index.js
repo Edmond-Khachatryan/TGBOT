@@ -64,18 +64,23 @@ server.on('error', (error) => {
     process.exit(1);
 });
 
+console.log('Бот запущен и готов принимать заявки!');
+
 // Обработка завершения работы
 process.on('SIGTERM', () => {
+    console.log('Бот выключается (SIGTERM)');
     server.close(() => {
         process.exit(0);
     });
 });
 
 // Обработка необработанных ошибок
-process.on('uncaughtException', () => {
+process.on('uncaughtException', (error) => {
+    console.log('Произошла необработанная ошибка:', error);
 });
 
-process.on('unhandledRejection', () => {
+process.on('unhandledRejection', (error) => {
+    console.log('Произошёл необработанный отказ в промисе:', error);
 });
 
 // Оставляю только обработчик chat_join_request
