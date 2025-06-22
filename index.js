@@ -88,14 +88,26 @@ process.on('unhandledRejection', (error) => {
     console.log('Произошёл необработанный отказ в промисе:', error);
 });
 
-// Оставляю только обработчик chat_join_request
+// Обработка заявки на вступление
 bot.on('chat_join_request', async (msg) => {
     const { chat, from } = msg;
     try {
         await bot.approveChatJoinRequest(chat.id, from.id);
-        console.log('Получена заявка на вступление:', msg);
+
+        // Получаем список админов
+        const admins = await bot.getChatAdministrators(chat.id);
+
+        // Формируем текст уведомления
+        const text = `✅ Новый участник @${from.username || from.first_name} вступил в канал "${chat.title}"`;
+
+        // Отправляем уведомление каждому админу (кроме бота)
+        for (const admin of admins) {
+            if (!admin.user.is_bot) {
+                await bot.sendMessage(admin.user.id, text);
+            }
+        }
     } catch (error) {
-        console.log('Ошибка при одобрении заявки:', error);
+        console.log('Ошибка при одобрении заявки или отправке уведомления:', error);
     }
 });
 
