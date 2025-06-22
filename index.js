@@ -93,6 +93,7 @@ bot.on('chat_join_request', async (msg) => {
     const { chat, from } = msg;
     try {
         await bot.approveChatJoinRequest(chat.id, from.id);
+        console.log('Получена заявка на вступление:', msg);
     } catch (error) {
         console.log('Ошибка при одобрении заявки:', error);
     }
