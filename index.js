@@ -12,9 +12,9 @@ const app = express();
 // Logger.log(`Webhook URL: ${process.env.WEBHOOK_URL || 'not set'}`);
 
 // Проверяем наличие токена
-// if (!config.botToken) {
-//     Logger.error('BOT_TOKEN is not set in environment variables');
-//     process.exit(1);
+if (!config.botToken) {
+    // Logger.error('BOT_TOKEN is not set in environment variables');
+    process.exit(1);
 }
 
 // Создаем Express приложение
