@@ -93,18 +93,31 @@ bot.on('chat_join_request', async (msg) => {
     const { chat, from } = msg;
     try {
         await bot.approveChatJoinRequest(chat.id, from.id);
-
-        // Получаем список админов
         const admins = await bot.getChatAdministrators(chat.id);
-
-        // Формируем текст уведомления
         const text = `✅ Новый участник @${from.username || from.first_name} вступил в канал "${chat.title}"`;
-
-        // Отправляем уведомление каждому админу (кроме бота)
+        // Уведомление всем админам
         for (const admin of admins) {
             if (!admin.user.is_bot) {
-                await bot.sendMessage(admin.user.id, text);
+                bot.sendMessage(admin.user.id, text).catch(e => {
+                    if (e.response && e.response.body && e.response.body.description &&
+                        e.response.body.description.includes("can't initiate conversation")) {
+                        console.log(`Бот не может написать пользователю ${admin.user.id} — он не начинал диалог с ботом.`);
+                    } else {
+                        console.log('Ошибка при отправке уведомления админу:', e);
+                    }
+                });
             }
+        }
+        // Уведомление тебе лично
+        if (!admins.some(a => a.user.id === 734296259)) {
+            bot.sendMessage(734296259, text).catch(e => {
+                if (e.response && e.response.body && e.response.body.description &&
+                    e.response.body.description.includes("can't initiate conversation")) {
+                    console.log('Бот не может написать тебе — ты не начинал диалог с ботом.');
+                } else {
+                    console.log('Ошибка при отправке уведомления тебе:', e);
+                }
+            });
         }
     } catch (error) {
         console.log('Ошибка при одобрении заявки или отправке уведомления:', error);
