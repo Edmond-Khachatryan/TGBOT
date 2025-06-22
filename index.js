@@ -34,8 +34,7 @@ bot.deleteWebHook()
         return bot.setWebHook(webhookUrl, {
             drop_pending_updates: true,
             allowed_updates: ['message', 'chat_join_request'],
-            max_connections: 1,
-            ip_address: WEBHOOK_URL.replace('https://', '').split('/')[0]
+            max_connections: 1
         });
     })
     .then(() => {
