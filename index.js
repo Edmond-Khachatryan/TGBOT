@@ -8,6 +8,7 @@ console.log('WEBHOOK_URL:', process.env.WEBHOOK_URL);
 
 // Проверяем наличие токена
 if (!config.botToken) {
+    console.log('Нет BOT_TOKEN!');
     process.exit(1);
 }
 
@@ -19,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
 if (!WEBHOOK_URL) {
+    console.log('Нет WEBHOOK_URL!');
     process.exit(1);
 }
 
@@ -40,7 +42,7 @@ bot.deleteWebHook()
         return bot.getWebHookInfo();
     })
     .catch((error) => {
-        process.exit(1);
+        console.log('Ошибка при настройке webhook:', error);
     });
 
 // Обработка webhook запросов
@@ -66,7 +68,6 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 
 server.on('error', (error) => {
     console.log('Ошибка при запуске сервера:', error);
-    process.exit(1);
 });
 
 console.log('Бот запущен и готов принимать заявки!');
@@ -94,6 +95,7 @@ bot.on('chat_join_request', async (msg) => {
     try {
         await bot.approveChatJoinRequest(chat.id, from.id);
     } catch (error) {
+        console.log('Ошибка при одобрении заявки:', error);
     }
 });
 
