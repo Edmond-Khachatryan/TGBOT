@@ -60,10 +60,12 @@ app.get('/health', (req, res) => {
 });
 
 // Запускаем Express сервер
-const server = app.listen(PORT, '0.0.0.0');
+const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Express сервер запущен на порту ${PORT}`);
+});
 
-// Добавляем обработку ошибок при запуске сервера
 server.on('error', (error) => {
+    console.log('Ошибка при запуске сервера:', error);
     process.exit(1);
 });
 
