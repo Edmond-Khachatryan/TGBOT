@@ -3,6 +3,9 @@ const config = require('./config');
 const express = require('express');
 const app = express();
 
+console.log('BOT_TOKEN:', config.botToken);
+console.log('WEBHOOK_URL:', process.env.WEBHOOK_URL);
+
 // Проверяем наличие токена
 if (!config.botToken) {
     process.exit(1);
