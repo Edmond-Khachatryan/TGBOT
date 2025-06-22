@@ -91,3 +91,7 @@ bot.on('chat_join_request', async (msg) => {
     } catch (error) {
     }
 });
+
+process.on('exit', (code) => {
+    console.log('Процесс завершён с кодом:', code);
+});
