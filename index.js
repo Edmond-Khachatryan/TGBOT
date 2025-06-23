@@ -6,7 +6,6 @@ const fs = require('fs');
 const USERS_FILE = './users.json';
 const ADMIN_ID = 734296259; // замените на ваш Telegram user_id
 const ALLOWED_CHATS_FILE = './allowed_chats.json';
-const mongoose = require('mongoose');
 
 console.log('BOT_TOKEN:', config.botToken);
 console.log('WEBHOOK_URL:', process.env.WEBHOOK_URL);
