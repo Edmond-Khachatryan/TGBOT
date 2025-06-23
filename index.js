@@ -6,6 +6,7 @@ const fs = require('fs');
 const USERS_FILE = './users.json';
 const ADMIN_ID = 734296259; // замените на ваш Telegram user_id
 const ALLOWED_CHATS_FILE = './allowed_chats.json';
+const mongoose = require('mongoose');
 
 console.log('BOT_TOKEN:', config.botToken);
 console.log('WEBHOOK_URL:', process.env.WEBHOOK_URL);
@@ -92,10 +93,33 @@ process.on('unhandledRejection', (error) => {
     console.log('Произошёл необработанный отказ в промисе:', error);
 });
 
+// Удаляем MongoDB и используем обычный массив для allowedChats
+let allowedChats = [-1002698711606]; // основной канал всегда разрешён
+
+bot.onText(/\/allow (.+)/, (msg, match) => {
+  if (msg.from.id !== ADMIN_ID) return;
+  const chatId = parseInt(match[1]);
+  if (!allowedChats.includes(chatId)) {
+    allowedChats.push(chatId);
+  }
+  bot.sendMessage(msg.chat.id, `✅ Разрешено для чата ${chatId}`);
+});
+
+bot.onText(/\/disallow (.+)/, (msg, match) => {
+  if (msg.from.id !== ADMIN_ID) return;
+  const chatId = parseInt(match[1]);
+  allowedChats = allowedChats.filter(id => id !== chatId);
+  bot.sendMessage(msg.chat.id, `❌ Запрещено для чата ${chatId}`);
+});
+
+bot.onText(/\/list/, (msg) => {
+  if (msg.from.id !== ADMIN_ID) return;
+  bot.sendMessage(msg.chat.id, `Список разрешённых чатов:\n${allowedChats.join('\n')}`);
+});
+
 // Обработка заявки на вступление
 bot.on('chat_join_request', async (msg) => {
     const { chat, from } = msg;
-    const allowedChats = getAllowedChats();
     if (!allowedChats.includes(chat.id)) {
         // Не разрешено — ничего не делаем
         return;
@@ -106,7 +130,7 @@ bot.on('chat_join_request', async (msg) => {
         // Затем отправляем рекламное сообщение (если получится)
         await bot.sendMessage(
             from.id,
-            '👋 Привет! Спасибо за вступление! Подпишитесь на нашего Telegram-бота и обязательно напишите /start в чате с ним: @helper_zapros_bot\n\nЭто поможет вам получать важные уведомления.'
+            '👋 Привет! Спасибо за вступление! Подпишитесь на нашего Telegram-бота и обязательно напишите /start в чате с ним: @edmondkhach_bot\n\nЭто поможет вам получать важные уведомления.'
         ).catch(e => {
             if (
                 e.response &&
@@ -254,49 +278,4 @@ bot.onText(/\/users/, (msg) => {
   if (msg.from.id !== ADMIN_ID) return;
   const users = getUsers();
   bot.sendMessage(msg.chat.id, `👥 В боте всего пользователей: ${users.length}\n\nID пользователей:\n${users.join(', ')}`);
-});
-
-function getAllowedChats() {
-  if (fs.existsSync(ALLOWED_CHATS_FILE)) {
-    return JSON.parse(fs.readFileSync(ALLOWED_CHATS_FILE, 'utf8'));
-  }
-  return [];
-}
-
-function saveAllowedChats(chats) {
-  fs.writeFileSync(ALLOWED_CHATS_FILE, JSON.stringify(chats));
-}
-
-function allowChat(chatId) {
-  const chats = getAllowedChats();
-  if (!chats.includes(chatId)) {
-    chats.push(chatId);
-    saveAllowedChats(chats);
-  }
-}
-
-function disallowChat(chatId) {
-  let chats = getAllowedChats();
-  chats = chats.filter(id => id !== chatId);
-  saveAllowedChats(chats);
-}
-
-bot.onText(/\/allow (.+)/, (msg, match) => {
-  if (msg.from.id !== ADMIN_ID) return;
-  const chatId = parseInt(match[1]);
-  allowChat(chatId);
-  bot.sendMessage(msg.chat.id, `✅ Разрешено для чата ${chatId}`);
-});
-
-bot.onText(/\/disallow (.+)/, (msg, match) => {
-  if (msg.from.id !== ADMIN_ID) return;
-  const chatId = parseInt(match[1]);
-  disallowChat(chatId);
-  bot.sendMessage(msg.chat.id, `❌ Запрещено для чата ${chatId}`);
-});
-
-bot.onText(/\/listchats/, (msg) => {
-  if (msg.from.id !== ADMIN_ID) return;
-  const chats = getAllowedChats();
-  bot.sendMessage(msg.chat.id, `Список разрешённых чатов:\n${chats.join('\n')}`);
 });
