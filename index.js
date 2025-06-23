@@ -127,3 +127,61 @@ bot.on('chat_join_request', async (msg) => {
 process.on('exit', (code) => {
     console.log('Процесс завершён с кодом:', code);
 });
+
+const mainMenu = {
+  reply_markup: {
+    inline_keyboard: [
+      [{ text: '🛒 Каталог услуг', callback_data: 'catalog' }],
+      [{ text: '📝 Оформить заказ', callback_data: 'order' }],
+      [{ text: '💬 Контакты', callback_data: 'contact' }],
+      [{ text: '💳 Оплата', callback_data: 'payment' }]
+    ]
+  }
+};
+
+const services = [
+  { name: 'Услуга', description: 'Этот бот автоматически принимает заявки на вступление в канал/группу.\n\nЕсли вы хотите добавить больше функций или заказать индивидуального Telegram-бота — свяжитесь со мной для обсуждения деталей!', price: '5$' },
+];
+
+bot.onText(/\/start/, (msg) => {
+  bot.sendMessage(
+    msg.chat.id,
+    '👋 Добро пожаловать! Я помогу вам выбрать и заказать услугу.\n\nВыберите нужный раздел:',
+    mainMenu
+  );
+});
+
+bot.on('callback_query', (query) => {
+  const chatId = query.message.chat.id;
+
+  if (query.data === 'catalog') {
+    let text = '🛒 <b>Каталог услуг</b>\n\n';
+    services.forEach((s, i) => {
+      text += `• <b>${s.name}</b>\n${s.description}\nЦена: ${s.price}\n\n`;
+    });
+    bot.sendMessage(chatId, text, { parse_mode: 'HTML' });
+  }
+
+  if (query.data === 'order') {
+    bot.sendMessage(
+      chatId,
+      'Пожалуйста, напишите, какую услугу вы хотите заказать и ваши контактные данные. Мы свяжемся с вами для подтверждения заказа.'
+    );
+  }
+
+  if (query.data === 'contact') {
+    bot.sendMessage(
+      chatId,
+      'Связаться с нами можно по Telegram: @edmondkhach \n или по email: edmond2001@mail.ru'
+    );
+  }
+
+  if (query.data === 'payment') {
+    bot.sendMessage(
+      chatId,
+      'Оплатить услугу можно переводом на карту: 4355 0539 2430 9794'
+    );
+  }
+
+  bot.answerCallbackQuery(query.id);
+});
