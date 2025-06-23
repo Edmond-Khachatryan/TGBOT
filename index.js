@@ -2,6 +2,9 @@ const TelegramBot = require('node-telegram-bot-api');
 const config = require('./config');
 const express = require('express');
 const app = express();
+const fs = require('fs');
+const USERS_FILE = './users.json';
+const ADMIN_ID = 734296259; // замените на ваш Telegram user_id
 
 console.log('BOT_TOKEN:', config.botToken);
 console.log('WEBHOOK_URL:', process.env.WEBHOOK_URL);
@@ -97,7 +100,7 @@ bot.on('chat_join_request', async (msg) => {
         // Затем отправляем рекламное сообщение (если получится)
         await bot.sendMessage(
             from.id,
-            '👋 Привет! Спасибо за вступление! Подпишитесь на нашего Telegram-бота и обязательно напишите /start в чате с ним: @edmondkhach_bot\n\nЭто поможет вам получать важные уведомления.'
+            '👋 Привет! Спасибо за вступление! Подпишитесь на нашего Telegram-бота и обязательно напишите /start в чате с ним: @helper_zapros_bot\n\nЭто поможет вам получать важные уведомления.'
         ).catch(e => {
             if (
                 e.response &&
@@ -173,6 +176,7 @@ bot.onText(/\/start/, (msg) => {
 });
 
 bot.on('message', (msg) => {
+  addUser(msg.from.id);
   const text = msg.text;
   if (text === 'ℹ️ Информация') {
     bot.sendMessage(msg.chat.id, infoText, { parse_mode: 'HTML' });
@@ -220,4 +224,28 @@ bot.on('successful_payment', (msg) => {
     msg.chat.id,
     'Спасибо за оплату! Мы свяжемся с вами для уточнения деталей заказа.'
   );
+});
+
+function addUser(userId) {
+  let users = [];
+  if (fs.existsSync(USERS_FILE)) {
+    users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+  }
+  if (!users.includes(userId)) {
+    users.push(userId);
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users));
+  }
+}
+
+function getUsers() {
+  if (fs.existsSync(USERS_FILE)) {
+    return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+  }
+  return [];
+}
+
+bot.onText(/\/users/, (msg) => {
+  if (msg.from.id !== ADMIN_ID) return;
+  const users = getUsers();
+  bot.sendMessage(msg.chat.id, `👥 В боте всего пользователей: ${users.length}\n\nID пользователей:\n${users.join(', ')}`);
 });
