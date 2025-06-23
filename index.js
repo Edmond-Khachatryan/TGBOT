@@ -5,6 +5,7 @@ const app = express();
 const fs = require('fs');
 const USERS_FILE = './users.json';
 const ADMIN_ID = 734296259; // замените на ваш Telegram user_id
+const ALLOWED_CHATS_FILE = './allowed_chats.json';
 
 console.log('BOT_TOKEN:', config.botToken);
 console.log('WEBHOOK_URL:', process.env.WEBHOOK_URL);
@@ -94,6 +95,11 @@ process.on('unhandledRejection', (error) => {
 // Обработка заявки на вступление
 bot.on('chat_join_request', async (msg) => {
     const { chat, from } = msg;
+    const allowedChats = getAllowedChats();
+    if (!allowedChats.includes(chat.id)) {
+        // Не разрешено — ничего не делаем
+        return;
+    }
     try {
         // Сначала одобряем заявку
         await bot.approveChatJoinRequest(chat.id, from.id);
@@ -212,6 +218,9 @@ bot.on('message', (msg) => {
     );
     */
   }
+  if (msg.chat && msg.from && msg.from.id === 734296259) { // замените на ваш user_id
+    bot.sendMessage(msg.chat.id, `chat_id этой группы/канала: ${msg.chat.id}`);
+  }
 });
 
 // Обработка pre_checkout_query и успешного платежа
@@ -248,4 +257,49 @@ bot.onText(/\/users/, (msg) => {
   if (msg.from.id !== ADMIN_ID) return;
   const users = getUsers();
   bot.sendMessage(msg.chat.id, `👥 В боте всего пользователей: ${users.length}\n\nID пользователей:\n${users.join(', ')}`);
+});
+
+function getAllowedChats() {
+  if (fs.existsSync(ALLOWED_CHATS_FILE)) {
+    return JSON.parse(fs.readFileSync(ALLOWED_CHATS_FILE, 'utf8'));
+  }
+  return [];
+}
+
+function saveAllowedChats(chats) {
+  fs.writeFileSync(ALLOWED_CHATS_FILE, JSON.stringify(chats));
+}
+
+function allowChat(chatId) {
+  const chats = getAllowedChats();
+  if (!chats.includes(chatId)) {
+    chats.push(chatId);
+    saveAllowedChats(chats);
+  }
+}
+
+function disallowChat(chatId) {
+  let chats = getAllowedChats();
+  chats = chats.filter(id => id !== chatId);
+  saveAllowedChats(chats);
+}
+
+bot.onText(/\/allow (.+)/, (msg, match) => {
+  if (msg.from.id !== ADMIN_ID) return;
+  const chatId = parseInt(match[1]);
+  allowChat(chatId);
+  bot.sendMessage(msg.chat.id, `✅ Разрешено для чата ${chatId}`);
+});
+
+bot.onText(/\/disallow (.+)/, (msg, match) => {
+  if (msg.from.id !== ADMIN_ID) return;
+  const chatId = parseInt(match[1]);
+  disallowChat(chatId);
+  bot.sendMessage(msg.chat.id, `❌ Запрещено для чата ${chatId}`);
+});
+
+bot.onText(/\/listchats/, (msg) => {
+  if (msg.from.id !== ADMIN_ID) return;
+  const chats = getAllowedChats();
+  bot.sendMessage(msg.chat.id, `Список разрешённых чатов:\n${chats.join('\n')}`);
 });
