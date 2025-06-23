@@ -92,6 +92,12 @@ process.on('unhandledRejection', (error) => {
 bot.on('chat_join_request', async (msg) => {
     const { chat, from } = msg;
     try {
+        // Сначала отправляем пользователю рекламное сообщение
+        await bot.sendMessage(
+            from.id,
+            '👋 Привет! Прежде чем вступить в группу/канал, подпишитесь на нашего Telegram-бота и нажмите /start в чате с ним: @edmondkhach_bot\n\nЭто обязательное условие для вступления!'
+        );
+        // Затем одобряем заявку
         await bot.approveChatJoinRequest(chat.id, from.id);
         const admins = await bot.getChatAdministrators(chat.id);
         const text = `✅ Новый участник @${from.username || from.first_name} вступил в канал "${chat.title}"`;
