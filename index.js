@@ -218,9 +218,6 @@ bot.on('message', (msg) => {
     );
     */
   }
-  if (msg.chat && msg.from && msg.from.id === 734296259) { // замените на ваш user_id
-    bot.sendMessage(msg.chat.id, `chat_id этой группы/канала: ${msg.chat.id}`);
-  }
 });
 
 // Обработка pre_checkout_query и успешного платежа
