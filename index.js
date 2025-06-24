@@ -101,19 +101,19 @@ bot.onText(/\/allow (.+)/, (msg, match) => {
   if (!allowedChats.includes(chatId)) {
     allowedChats.push(chatId);
   }
-  bot.sendMessage(msg.chat.id, `✅ Разрешено для чата ${chatId}`);
+  bot.sendMessage(msg.chat.id, `✅ Разрешено для чата ${chatId}`, {});
 });
 
 bot.onText(/\/disallow (.+)/, (msg, match) => {
   if (msg.from.id !== ADMIN_ID) return;
   const chatId = parseInt(match[1]);
   allowedChats = allowedChats.filter(id => id !== chatId);
-  bot.sendMessage(msg.chat.id, `❌ Запрещено для чата ${chatId}`);
+  bot.sendMessage(msg.chat.id, `❌ Запрещено для чата ${chatId}`, {});
 });
 
 bot.onText(/\/list/, (msg) => {
   if (msg.from.id !== ADMIN_ID) return;
-  bot.sendMessage(msg.chat.id, `Список разрешённых чатов:\n${allowedChats.join('\n')}`);
+  bot.sendMessage(msg.chat.id, `Список разрешённых чатов:\n${allowedChats.join('\n')}`, {});
 });
 
 // Обработка заявки на вступление
@@ -196,16 +196,26 @@ const mainMenu = {
   }
 };
 
+// Функция для проверки, является ли чат приватным
+function isPrivateChat(chat) {
+  return chat.type === 'private';
+}
+
 bot.onText(/\/start/, (msg) => {
+  const options = isPrivateChat(msg.chat) ? mainMenu : {};
   bot.sendMessage(
     msg.chat.id,
     'Добро пожаловать! Используйте меню ниже для взаимодействия с ботом.',
-    mainMenu
+    options
   );
 });
 
 bot.on('message', (msg) => {
-  addUser(msg.from.id);
+  // Добавляем пользователя только в приватных чатах
+  if (isPrivateChat(msg.chat)) {
+    addUser(msg.from.id);
+  }
+  
   const text = msg.text;
   if (text === 'ℹ️ Информация') {
     bot.sendMessage(msg.chat.id, infoText, { parse_mode: 'HTML' });
@@ -276,5 +286,5 @@ function getUsers() {
 bot.onText(/\/users/, (msg) => {
   if (msg.from.id !== ADMIN_ID) return;
   const users = getUsers();
-  bot.sendMessage(msg.chat.id, `👥 В боте всего пользователей: ${users.length}\n\nID пользователей:\n${users.join(', ')}`);
+  bot.sendMessage(msg.chat.id, `👥 В боте всего пользователей: ${users.length}\n\nID пользователей:\n${users.join(', ')}`, {});
 });
