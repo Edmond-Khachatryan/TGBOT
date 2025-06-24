@@ -211,10 +211,8 @@ bot.onText(/\/start/, (msg) => {
 });
 
 bot.on('message', (msg) => {
-  // Добавляем пользователя только в приватных чатах
-  if (isPrivateChat(msg.chat)) {
-    addUser(msg.from.id);
-  }
+  if (!isPrivateChat(msg.chat)) return;
+  addUser(msg.from.id);
   
   const text = msg.text;
   if (text === 'ℹ️ Информация') {
@@ -224,32 +222,10 @@ bot.on('message', (msg) => {
   } else if (text === '🇺🇸 US') {
     bot.sendMessage(msg.chat.id, infoTextEn, { parse_mode: 'HTML' });
   } else if (text === '📝 Заказать') {
-    // Временно только контактная информация, без оплаты
     bot.sendMessage(
       msg.chat.id,
       'Для заказа или расширения функционала бота свяжитесь с создателем:\nTelegram: @edmondkhach\nEmail: edmond2001@mail.ru'
     );
-    // Когда появится paymentProviderToken, раскомментируйте код ниже:
-    /*
-    bot.sendInvoice(
-      msg.chat.id,
-      'Заказ Telegram-бота',
-      'Оплата за автоматического Telegram-бота для приёма заявок',
-      'order_payload_001',
-      config.paymentProviderToken,
-      'USD',
-      [
-        {
-          label: 'Telegram-бот',
-          amount: 1000 // 10.00 USD (в центах)
-        }
-      ],
-      {
-        need_name: true,
-        need_email: true
-      }
-    );
-    */
   }
 });
 
@@ -261,7 +237,8 @@ bot.on('pre_checkout_query', (query) => {
 bot.on('successful_payment', (msg) => {
   bot.sendMessage(
     msg.chat.id,
-    'Спасибо за оплату! Мы свяжемся с вами для уточнения деталей заказа.'
+    'Спасибо за оплату! Мы свяжемся с вами для уточнения деталей заказа.',
+    {}
   );
 });
 
