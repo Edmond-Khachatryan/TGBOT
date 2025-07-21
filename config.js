@@ -1,4 +1,3 @@
 module.exports = {
-    botToken: '8156252877:AAEeB21N7Max2FcDNUlZezwk_2EbUf77-Fo',
-    paymentProviderToken: 'ВАШ_PAYMENT_PROVIDER_TOKEN'
+    botToken: '8156252877:AAFiIhutQ0Q6WLL93sDWFWJ-ce5P5bSEUWc'
 }; 
